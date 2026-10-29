@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Kumbung Jamur IoT - Karawang</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MQTT.js CDN -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-emerald-700 text-white p-6 shadow-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold">Smart Kumbung Jamur IoT</h1>
+                <p class="text-sm opacity-90">Lokasi: TPS Telukjambe Timur, Karawang</p>
+            </div>
+            <div id="status-badge" class="px-4 py-1 rounded-full text-xs font-semibold bg-yellow-500 text-white">
+                Connecting...
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto p-6 space-y-6">
+
+        <!-- Grid Kartu Sensor -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- Kartu Suhu -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-sm font-medium text-gray-500">Suhu Udara</h2>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="val-suhu" class="text-4xl font-extrabold text-gray-800">--</span>
+                    <span class="text-xl font-bold text-gray-500">°C</span>
+                </div>
+                <div class="mt-4 text-xs text-gray-500">Ambang Batas Maks: <span class="font-bold text-red-500">28.0 °C</span></div>
+            </div>
+
+            <!-- Kartu Kelembapan -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-sm font-medium text-gray-500">Kelembapan Udara</h2>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="val-hum" class="text-4xl font-extrabold text-gray-800">--</span>
+                    <span class="text-xl font-bold text-gray-500">%</span>
+                </div>
+                <div class="mt-4 text-xs text-gray-500">Ambang Batas Min: <span class="font-bold text-emerald-600">80.0 %</span></div>
+            </div>
+
+            <!-- Kartu Kualitas Udara / Gas MQ-135 -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                <h2 class="text-sm font-medium text-gray-500">Kadar Gas / MQ-135</h2>
+                <div class="mt-2 flex items-baseline justify-between">
+                    <span id="val-gas" class="text-4xl font-extrabold text-gray-800">--</span>
+                    <span class="text-xl font-bold text-gray-500">ADC / PPM</span>
+                </div>
+                <div class="mt-4 text-xs text-gray-500">Indikator Pembusukan Baglog</div>
+            </div>
+
+        </div>
+
+        <!-- Kendali Aktuator Pompa -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+                <h3 class="text-lg font-bold text-gray-800">Kendali Pompa Penyiraman</h3>
+                <p class="text-sm text-gray-500">Sistem otomatis beroperasi berdasarkan sensor. Gunakan tombol ini untuk override manual.</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span id="status-pompa" class="text-sm font-semibold text-gray-600">Status: UNKNOWN</span>
+                <button id="btn-on" onclick="controlPump('ON')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg shadow">
+                    Nyalakan
+                </button>
+                <button id="btn-off" onclick="controlPump('OFF')" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg shadow">
+                    Matikan
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script Koneksi MQTT Real-Time -->
+    <script>
+        // Menggunakan broker HiveMQ Public via Websocket (Port 8000 / 8884)
+        const brokerUrl = 'wss://broker.hivemq.com:8884/mqtt';
+        const client = mqtt.connect(brokerUrl);
+
+        const statusBadge = document.getElementById('status-badge');
+        const valSuhu = document.getElementById('val-suhu');
+        const valHum = document.getElementById('val-hum');
+        const valGas = document.getElementById('val-gas');
+        const statusPompa = document.getElementById('status-pompa');
+
+        client.on('connect', () => {
+            statusBadge.innerText = 'Online / Connected';
+            statusBadge.className = 'px-4 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white';
+
+            // Subscribe topik sensor
+            client.subscribe('kumbung/sensor/suhu');
+            client.subscribe('kumbung/sensor/kelembapan');
+            client.subscribe('kumbung/sensor/gas');
+            client.subscribe('kumbung/aktuator/pompa');
+        });
+
+        client.on('offline', () => {
+            statusBadge.innerText = 'Offline';
+            statusBadge.className = 'px-4 py-1 rounded-full text-xs font-semibold bg-red-500 text-white';
+        });
+
+        client.on('message', (topic, message) => {
+            const payload = message.toString();
+
+            if (topic === 'kumbung/sensor/suhu') {
+                valSuhu.innerText = payload;
+            } else if (topic === 'kumbung/sensor/kelembapan') {
+                valHum.innerText = payload;
+            } else if (topic === 'kumbung/sensor/gas') {
+                valGas.innerText = payload;
+            } else if (topic === 'kumbung/aktuator/pompa') {
+                statusPompa.innerText = 'Status Pompa: ' + payload;
+                if (payload === 'ON') {
+                    statusPompa.className = 'text-sm font-semibold text-emerald-600';
+                } else {
+                    statusPompa.className = 'text-sm font-semibold text-red-600';
+                }
+            }
+        });
+
+        function controlPump(command) {
+            client.publish('kumbung/aktuator/pompa', command);
+        }
+    </script>
+</body>
+</html>
