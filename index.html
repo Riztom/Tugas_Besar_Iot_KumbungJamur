@@ -65,7 +65,7 @@
                     <span id="val-suhu" class="text-4xl font-extrabold text-amber-400">--</span>
                     <span class="text-lg font-bold text-slate-400">°C</span>
                 </div>
-                <p class="mt-3 text-[10px] text-slate-400">Picu Otomatis: <span class="text-emerald-400 font-bold">&ge; 23.0 °C</span></p>
+                <p class="mt-3 text-[10px] text-slate-400">Picu Otomatis: <span class="text-emerald-400 font-bold">&ge; 32.0 °C</span></p>
             </div>
 
             <!-- Kelembapan Card -->
@@ -94,16 +94,20 @@
                 <p class="mt-3 text-[10px] text-slate-400">Ambang Batas Aman: <span class="text-purple-400 font-bold">&lt; 400 ADC</span></p>
             </div>
 
-            <!-- Status Pompa Card -->
+            <!-- Status Pompa & Countdown Timer Card -->
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
                 <div class="flex justify-between items-center text-slate-400 text-xs font-semibold">
-                    <span>STATUS POMPA</span>
+                    <span>STATUS & TIMER POMPA</span>
                     <span>🚰</span>
                 </div>
-                <div class="my-2">
-                    <span id="badge-pompa" class="inline-block px-4 py-2 rounded-xl text-lg font-black bg-slate-700 text-slate-400">
+                <div class="my-2 flex items-center justify-between">
+                    <span id="badge-pompa" class="inline-block px-3 py-1.5 rounded-xl text-base font-black bg-slate-700 text-slate-400">
                         MATI
                     </span>
+                    <div class="text-right">
+                        <span id="timer-label" class="block text-[10px] text-slate-400 font-semibold">ESTIMASI TIMER</span>
+                        <span id="timer-val" class="font-mono text-lg font-bold text-amber-400">--:--</span>
+                    </div>
                 </div>
                 <p id="mode-text" class="text-[10px] text-slate-400">Mode: <span class="text-emerald-400 font-bold">OTOMATIS</span></p>
             </div>
@@ -184,6 +188,8 @@
         const client = mqtt.connect(brokerUrl);
 
         let espTimeout;
+        let countdownInterval = null;
+        let remainingSeconds = 0;
 
         // Inisialisasi Chart.js
         function createChart(ctx, label, color) {
@@ -227,13 +233,45 @@
             chart.update();
         }
 
+        // Fungsi Memulai Countdown Timer
+        function startTimer(seconds, labelText, labelColorClass) {
+            clearInterval(countdownInterval);
+            remainingSeconds = seconds;
+            
+            const labelEl = document.getElementById('timer-label');
+            const valEl = document.getElementById('timer-val');
+            
+            labelEl.innerText = labelText;
+            labelEl.className = 'block text-[10px] font-semibold ' + labelColorClass;
+
+            countdownInterval = setInterval(() => {
+                if (remainingSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    valEl.innerText = '00:00';
+                    return;
+                }
+
+                remainingSeconds--;
+                const mins = Math.floor(remainingSeconds / 60);
+                const secs = remainingSeconds % 60;
+                valEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(countdownInterval);
+            document.getElementById('timer-label').innerText = 'TIMER READY';
+            document.getElementById('timer-label').className = 'block text-[10px] text-slate-400 font-semibold';
+            document.getElementById('timer-val').innerText = '--:--';
+        }
+
         // MQTT Client Events
         client.on('connect', () => {
             document.getElementById('dot-wifi').className = 'w-3 h-3 rounded-full bg-emerald-500';
             document.getElementById('text-wifi').innerText = 'CONNECTED';
             document.getElementById('text-wifi').className = 'text-emerald-400';
 
-            // Subscribe ke topik-topik sistem (Sudah disesuaikan dengan ESP32)
+            // Subscribe ke topik-topik sistem
             client.subscribe('kumbung/sensor/suhu');
             client.subscribe('kumbung/sensor/kelembapan');
             client.subscribe('kumbung/sensor/gas');
@@ -271,14 +309,15 @@
                 const badge = document.getElementById('badge-pompa');
                 if (payload === 'ON') {
                     badge.innerText = 'NYALA';
-                    badge.className = 'inline-block px-4 py-2 rounded-xl text-lg font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500 animate-pulse';
+                    badge.className = 'inline-block px-3 py-1.5 rounded-xl text-base font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500 animate-pulse';
+                    // Mulai Countdown 2 Menit (120 Detik) Pompa Menyala
+                    startTimer(120, 'SISA MENYALA', 'text-emerald-400');
                 } else {
                     badge.innerText = 'MATI';
-                    badge.className = 'inline-block px-4 py-2 rounded-xl text-lg font-black bg-slate-700 text-slate-400';
+                    badge.className = 'inline-block px-3 py-1.5 rounded-xl text-base font-black bg-slate-700 text-slate-400';
                 }
             } 
             else if (topic === 'kumbung/sistem/esp_status' && payload === 'ONLINE') {
-                // Sinyal ESP32 Diterima
                 document.getElementById('dot-esp').className = 'w-3 h-3 rounded-full bg-emerald-500 animate-ping';
                 document.getElementById('text-esp').innerText = 'ONLINE';
                 document.getElementById('text-esp').className = 'text-emerald-400';
@@ -288,7 +327,7 @@
                     document.getElementById('dot-esp').className = 'w-3 h-3 rounded-full bg-red-500';
                     document.getElementById('text-esp').innerText = 'OFFLINE';
                     document.getElementById('text-esp').className = 'text-red-400';
-                }, 10000); // Set OFFLINE jika 10 detik tak ada sinyal
+                }, 10000);
             } 
             else if (topic === 'kumbung/sistem/log') {
                 const logBox = document.getElementById('log-box');
@@ -297,6 +336,15 @@
                 newLog.innerHTML = `<span class="text-slate-500">[${time}]</span> ${payload}`;
                 logBox.appendChild(newLog);
                 logBox.scrollTop = logBox.scrollHeight;
+
+                // Deteksi Pesan Log untuk Countdown Jeda Matinya Pompa
+                if (payload.includes("Jeda istirahat 1 menit dimulai")) {
+                    startTimer(60, 'SISA JEDA MATI', 'text-amber-400');
+                } else if (payload.includes("istirahat total selama 5 MENIT")) {
+                    startTimer(300, 'ISTIRAHAT 5 MIN', 'text-rose-400');
+                } else if (payload.includes("ISTIRAHAT SELESAI")) {
+                    stopTimer();
+                }
             }
         });
 
@@ -314,6 +362,7 @@
                 btnManual.className = 'px-3 py-1.5 rounded-md bg-amber-600 text-white';
                 btnAuto.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-white';
                 modeText.innerHTML = 'Mode: <span class="text-amber-400 font-bold">MANUAL</span>';
+                stopTimer();
             }
         }
 
