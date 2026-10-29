@@ -12,7 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
-
     <!-- Header Navigation -->
     <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 sticky top-0 z-50 shadow-lg">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -20,7 +19,6 @@
                 <h1 class="text-2xl font-bold text-emerald-400">Dashboard Kontrol Kumbung Jamur</h1>
                 <p class="text-xs text-slate-400">Sistem Monitoring & Otomatisasi Penyiraman Presisi</p>
             </div>
-            
             <!-- Dual Status Badges -->
             <div class="flex items-center space-x-3">
                 <!-- Status ESP32 -->
@@ -31,15 +29,13 @@
                 <!-- Status Wi-Fi / MQTT -->
                 <div class="flex items-center bg-slate-700/80 px-3 py-1.5 rounded-lg border border-slate-600">
                     <span id="dot-wifi" class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>
-                    <span class="text-xs font-semibold text-slate-300">Wi-Fi: <span id="text-wifi" class="text-red-400">DISCONNECTED</span></span>
+                    <span class="text-xs font-semibold text-slate-300">MQTT: <span id="text-wifi" class="text-red-400">DISCONNECTED</span></span>
                 </div>
             </div>
         </div>
     </header>
-
     <!-- Main Container -->
     <main class="max-w-7xl mx-auto p-6 space-y-6">
-
         <!-- Banner Peringatan Kualitas Udara (Hidden Default) -->
         <div id="alert-gas" class="hidden bg-red-500/20 border border-red-500 text-red-300 px-4 py-3 rounded-xl flex items-center justify-between animate-bounce">
             <div class="flex items-center space-x-3">
@@ -51,10 +47,8 @@
             </div>
             <span id="alert-gas-val" class="font-mono font-bold text-lg">0 ADC</span>
         </div>
-
         <!-- Section Top Cards (Sensor & Pompa Status) -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            
             <!-- Suhu Card -->
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
                 <div class="flex justify-between items-center text-slate-400 text-xs font-semibold">
@@ -67,7 +61,6 @@
                 </div>
                 <p class="mt-3 text-[10px] text-slate-400">Picu Otomatis: <span class="text-emerald-400 font-bold">&ge; 32.0 °C</span></p>
             </div>
-
             <!-- Kelembapan Card -->
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
                 <div class="flex justify-between items-center text-slate-400 text-xs font-semibold">
@@ -80,7 +73,6 @@
                 </div>
                 <p class="mt-3 text-[10px] text-slate-400">Target Ideal: <span class="text-cyan-400 font-bold">80 - 90 %</span></p>
             </div>
-
             <!-- Kadar Gas MQ-135 Card -->
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
                 <div class="flex justify-between items-center text-slate-400 text-xs font-semibold">
@@ -93,7 +85,6 @@
                 </div>
                 <p class="mt-3 text-[10px] text-slate-400">Ambang Batas Aman: <span class="text-purple-400 font-bold">&lt; 400 ADC</span></p>
             </div>
-
             <!-- Status Pompa & Countdown Timer Card -->
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between">
                 <div class="flex justify-between items-center text-slate-400 text-xs font-semibold">
@@ -111,16 +102,12 @@
                 </div>
                 <p id="mode-text" class="text-[10px] text-slate-400">Mode: <span class="text-emerald-400 font-bold">OTOMATIS</span></p>
             </div>
-
         </div>
-
         <!-- Section Kendali Pompa & Log Aktivitas -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
             <!-- Panel Kontrol -->
             <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4">
                 <h3 class="text-lg font-bold text-slate-200 border-b border-slate-700 pb-2">Kendali Mode & Manual</h3>
-                
                 <!-- Toggle Switch Mode -->
                 <div class="flex items-center justify-between bg-slate-900/60 p-3 rounded-xl">
                     <span class="text-sm font-medium text-slate-300">Mode Operasi System</span>
@@ -129,7 +116,6 @@
                         <button id="btn-mode-manual" onclick="setMode('MANUAL')" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white">MANUAL</button>
                     </div>
                 </div>
-
                 <!-- Control Buttons -->
                 <div class="space-y-2 pt-2">
                     <p class="text-xs text-slate-400">Override Manual Pompa Air:</p>
@@ -143,7 +129,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Real-time Log Aktivitas ESP32 -->
             <div class="md:col-span-2 bg-slate-800 p-6 rounded-2xl border border-slate-700 flex flex-col justify-between">
                 <h3 class="text-lg font-bold text-slate-200 border-b border-slate-700 pb-2 flex justify-between">
@@ -154,43 +139,34 @@
                     <p class="text-slate-500">[System] Menunggu aliran log dari ESP32...</p>
                 </div>
             </div>
-
         </div>
-
         <!-- Section 3 Grafik Real-Time -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
             <!-- Grafik Suhu -->
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
                 <h4 class="text-sm font-bold text-amber-400 mb-3">Grafik Suhu (°C)</h4>
                 <canvas id="chartSuhu" class="w-full h-48"></canvas>
             </div>
-
             <!-- Grafik Kelembapan -->
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
                 <h4 class="text-sm font-bold text-cyan-400 mb-3">Grafik Kelembapan (%)</h4>
                 <canvas id="chartHum" class="w-full h-48"></canvas>
             </div>
-
             <!-- Grafik Kualitas Udara -->
             <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
                 <h4 class="text-sm font-bold text-purple-400 mb-3">Grafik Kualitas Udara (ADC)</h4>
                 <canvas id="chartGas" class="w-full h-48"></canvas>
             </div>
-
         </div>
-
     </main>
-
     <!-- JavaScript Logic -->
     <script>
         const brokerUrl = 'wss://broker.hivemq.com:8884/mqtt';
         const client = mqtt.connect(brokerUrl);
-
         let espTimeout;
         let countdownInterval = null;
         let remainingSeconds = 0;
-
+        let currentMode = 'AUTO';
         // Inisialisasi Chart.js
         function createChart(ctx, label, color) {
             return new Chart(ctx, {
@@ -217,11 +193,9 @@
                 }
             });
         }
-
         const chartSuhu = createChart(document.getElementById('chartSuhu'), 'Suhu', '#fbbf24');
         const chartHum = createChart(document.getElementById('chartHum'), 'Kelembapan', '#22d3ee');
         const chartGas = createChart(document.getElementById('chartGas'), 'Kualitas Udara', '#c084fc');
-
         function addChartData(chart, value) {
             const now = new Date().toLocaleTimeString();
             if (chart.data.labels.length > 10) {
@@ -232,70 +206,60 @@
             chart.data.datasets[0].data.push(value);
             chart.update();
         }
-
         // Fungsi Memulai Countdown Timer
         function startTimer(seconds, labelText, labelColorClass) {
             clearInterval(countdownInterval);
             remainingSeconds = seconds;
-            
             const labelEl = document.getElementById('timer-label');
             const valEl = document.getElementById('timer-val');
-            
             labelEl.innerText = labelText;
             labelEl.className = 'block text-[10px] font-semibold ' + labelColorClass;
-
             countdownInterval = setInterval(() => {
                 if (remainingSeconds <= 0) {
                     clearInterval(countdownInterval);
                     valEl.innerText = '00:00';
                     return;
                 }
-
                 remainingSeconds--;
                 const mins = Math.floor(remainingSeconds / 60);
                 const secs = remainingSeconds % 60;
                 valEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             }, 1000);
         }
-
         function stopTimer() {
             clearInterval(countdownInterval);
             document.getElementById('timer-label').innerText = 'TIMER READY';
             document.getElementById('timer-label').className = 'block text-[10px] text-slate-400 font-semibold';
             document.getElementById('timer-val').innerText = '--:--';
         }
-
         // MQTT Client Events
         client.on('connect', () => {
             document.getElementById('dot-wifi').className = 'w-3 h-3 rounded-full bg-emerald-500';
             document.getElementById('text-wifi').innerText = 'CONNECTED';
             document.getElementById('text-wifi').className = 'text-emerald-400';
-
             // Subscribe ke topik-topik sistem
-            client.subscribe('kumbung/sensor/suhu');
-            client.subscribe('kumbung/sensor/kelembapan');
-            client.subscribe('kumbung/sensor/gas');
-            client.subscribe('kumbung/aktuator/pompa');
-            client.subscribe('kumbung/sistem/esp_status');
-            client.subscribe('kumbung/sistem/log');
+            client.subscribe('kumbung/dashboard/sensor/suhu');
+            client.subscribe('kumbung/dashboard/sensor/kelembapan');
+            client.subscribe('kumbung/dashboard/sensor/gas');
+            client.subscribe('kumbung/dashboard/status/pompa');
+            client.subscribe('kumbung/dashboard/status/esp');
+            client.subscribe('kumbung/dashboard/status/mode');
+            client.subscribe('kumbung/dashboard/log');
         });
-
         client.on('message', (topic, message) => {
             const payload = message.toString();
-
-            if (topic === 'kumbung/sensor/suhu') {
+            if (topic === 'kumbung/dashboard/sensor/suhu') {
                 document.getElementById('val-suhu').innerText = payload;
                 addChartData(chartSuhu, parseFloat(payload));
             } 
-            else if (topic === 'kumbung/sensor/kelembapan') {
+            else if (topic === 'kumbung/dashboard/sensor/kelembapan') {
                 document.getElementById('val-hum').innerText = payload;
                 addChartData(chartHum, parseFloat(payload));
             } 
-            else if (topic === 'kumbung/sensor/gas') {
+            else if (topic === 'kumbung/dashboard/sensor/gas') {
                 const val = parseInt(payload);
                 document.getElementById('val-gas').innerText = val;
                 addChartData(chartGas, val);
-
                 // Peringatan Penuh Kualitas Udara
                 const alertBox = document.getElementById('alert-gas');
                 if (val > 400) {
@@ -305,55 +269,75 @@
                     alertBox.classList.add('hidden');
                 }
             } 
-            else if (topic === 'kumbung/aktuator/pompa') {
+            else if (topic === 'kumbung/dashboard/status/pompa') {
                 const badge = document.getElementById('badge-pompa');
                 if (payload === 'ON') {
                     badge.innerText = 'NYALA';
                     badge.className = 'inline-block px-3 py-1.5 rounded-xl text-base font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500 animate-pulse';
                     // Mulai Countdown 2 Menit (120 Detik) Pompa Menyala
                     startTimer(120, 'SISA MENYALA', 'text-emerald-400');
-                } else {
+                } else if (payload === 'OFF') {
                     badge.innerText = 'MATI';
                     badge.className = 'inline-block px-3 py-1.5 rounded-xl text-base font-black bg-slate-700 text-slate-400';
+                    stopTimer();
                 }
-            } 
-            else if (topic === 'kumbung/sistem/esp_status' && payload === 'ONLINE') {
-                document.getElementById('dot-esp').className = 'w-3 h-3 rounded-full bg-emerald-500 animate-ping';
-                document.getElementById('text-esp').innerText = 'ONLINE';
-                document.getElementById('text-esp').className = 'text-emerald-400';
-
+            }
+            else if (topic === 'kumbung/dashboard/status/esp') {
                 clearTimeout(espTimeout);
-                espTimeout = setTimeout(() => {
+                if (payload === 'ONLINE') {
+                    document.getElementById('dot-esp').className = 'w-3 h-3 rounded-full bg-emerald-500 animate-ping';
+                    document.getElementById('text-esp').innerText = 'ONLINE';
+                    document.getElementById('text-esp').className = 'text-emerald-400';
+                    espTimeout = setTimeout(() => {
+                        document.getElementById('dot-esp').className = 'w-3 h-3 rounded-full bg-red-500';
+                        document.getElementById('text-esp').innerText = 'OFFLINE';
+                        document.getElementById('text-esp').className = 'text-red-400';
+                    }, 10000);
+                } else if (payload === 'OFFLINE') {
                     document.getElementById('dot-esp').className = 'w-3 h-3 rounded-full bg-red-500';
                     document.getElementById('text-esp').innerText = 'OFFLINE';
                     document.getElementById('text-esp').className = 'text-red-400';
-                }, 10000);
-            } 
-            else if (topic === 'kumbung/sistem/log') {
+                }
+            }
+            else if (topic === 'kumbung/dashboard/status/mode') {
+                setMode(payload, false);
+            }
+            else if (topic === 'kumbung/dashboard/log') {
                 const logBox = document.getElementById('log-box');
                 const time = new Date().toLocaleTimeString();
                 const newLog = document.createElement('p');
-                newLog.innerHTML = `<span class="text-slate-500">[${time}]</span> ${payload}`;
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'text-slate-500';
+                timeSpan.textContent = `[${time}] `;
+                newLog.appendChild(timeSpan);
+                newLog.appendChild(document.createTextNode(payload));
                 logBox.appendChild(newLog);
                 logBox.scrollTop = logBox.scrollHeight;
-
-                // Deteksi Pesan Log untuk Countdown Jeda Matinya Pompa
-                if (payload.includes("Jeda istirahat 1 menit dimulai")) {
+                // Deteksi log untuk timer jeda otomatis (tidak peka huruf besar/kecil)
+                const lowerLog = payload.toLowerCase();
+                if (lowerLog.includes('jeda 1 menit dimulai')) {
                     startTimer(60, 'SISA JEDA MATI', 'text-amber-400');
-                } else if (payload.includes("istirahat total selama 5 MENIT")) {
+                } else if (lowerLog.includes('jeda 5 menit dimulai')) {
                     startTimer(300, 'ISTIRAHAT 5 MIN', 'text-rose-400');
-                } else if (payload.includes("ISTIRAHAT SELESAI")) {
+                } else if (lowerLog.includes('istirahat selesai')) {
                     stopTimer();
                 }
             }
         });
-
-        function setMode(mode) {
-            client.publish('kumbung/sistem/mode', mode);
+        function setMode(mode, sendCommand = true) {
+            mode = String(mode || '').trim().toUpperCase();
+            if (mode !== 'AUTO' && mode !== 'MANUAL') return;
+            currentMode = mode;
+            if (sendCommand) {
+                if (!client.connected) {
+                    addLocalLog('MQTT belum terhubung; perintah mode belum dikirim.');
+                    return;
+                }
+                client.publish('kumbung/dashboard/command/mode', mode);
+            }
             const btnAuto = document.getElementById('btn-mode-auto');
             const btnManual = document.getElementById('btn-mode-manual');
             const modeText = document.getElementById('mode-text');
-
             if (mode === 'AUTO') {
                 btnAuto.className = 'px-3 py-1.5 rounded-md bg-emerald-600 text-white';
                 btnManual.className = 'px-3 py-1.5 rounded-md text-slate-400 hover:text-white';
@@ -366,9 +350,36 @@
             }
         }
 
-        function sendPumpCmd(cmd) {
-            client.publish('kumbung/aktuator/pompa', cmd);
+        function addLocalLog(message) {
+            const logBox = document.getElementById('log-box');
+            const entry = document.createElement('p');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
         }
+
+        function sendPumpCmd(cmd) {
+            if (!client.connected) {
+                addLocalLog('MQTT belum terhubung; perintah pompa tidak dikirim.');
+                return;
+            }
+            if (currentMode !== 'MANUAL') {
+                addLocalLog('Perintah pompa ditolak pada dashboard: pilih mode MANUAL terlebih dahulu.');
+                return;
+            }
+            client.publish('kumbung/dashboard/command/pompa', cmd);
+            addLocalLog(`Perintah pompa ${cmd} dikirim ke Node-RED untuk validasi.`);
+        }
+
+        client.on('close', () => {
+            document.getElementById('dot-wifi').className = 'w-3 h-3 rounded-full bg-red-500 mr-2';
+            document.getElementById('text-wifi').innerText = 'DISCONNECTED';
+            document.getElementById('text-wifi').className = 'text-red-400';
+        });
+
+        client.on('error', (err) => {
+            console.error('MQTT browser error:', err);
+        });
     </script>
 </body>
 </html>
